@@ -193,6 +193,7 @@ runs standalone for debugging a single surface.
 ## Build troubleshooting
 
 If engine changes don't take effect: `swift package clean && swift build -c release`, or
-`rm -rf .build .swiftpm && swift build -c release`. The "unhandled files" warning for
-`Sources/CustomRules/*.swift` is expected. First clean build is slow (SwiftSyntax);
-incrementals are fast.
+remove `.build` and `.swiftpm`, then run `swift build -c release`. First clean build is
+slow (SwiftSyntax); incrementals are fast. The `swiftskim-engine` target excludes its
+`CustomRules` subdirectory because those sources belong to the separate library target;
+do not accept SwiftPM "unhandled files" warnings from that overlap.

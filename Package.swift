@@ -83,6 +83,7 @@ let package = Package(
                 .product(name: "SwiftParser", package: "swift-syntax"),
             ],
             path: "CustomRules/swiftlint-swiftsyntax-integration/rule-engine/Sources",
+            exclude: ["CustomRules"],
             sources: ["main.swift"],
         ),
 

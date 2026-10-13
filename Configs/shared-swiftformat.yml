@@ -81,7 +81,7 @@
 --rules redundantEquatable
 --rules redundantExtensionACL
 --rules redundantLetError
---rules redundantProperty
+--rules redundantVariable
 --rules redundantRawValues
 --rules redundantTypedThrows
 
