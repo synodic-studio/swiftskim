@@ -208,6 +208,6 @@
 # =============================================================================
 
 # Common exclusions (projects can add their own)
---exclude build,.build,Frameworks,${DERIVED_DATA}
+--exclude build,.build,Derived,DerivedData,Frameworks,${DERIVED_DATA}
 
 # =============================================================================
