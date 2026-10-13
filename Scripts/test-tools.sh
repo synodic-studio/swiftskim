@@ -115,6 +115,28 @@ fi
 
 echo ""
 
+# Warnings are failures. A wrapper that merely prints a warning but exits zero
+# lets quality debt pass every caller that correctly trusts the process status.
+echo "🚦 Checking strict SwiftLint warning handling..."
+STRICT_FIXTURE_DIR="$(mktemp -d)"
+trap 'rm -rf "$STRICT_FIXTURE_DIR"' EXIT
+cat > "$STRICT_FIXTURE_DIR/.swiftlint.yml" <<'EOF'
+opt_in_rules:
+  - empty_string
+EOF
+cat > "$STRICT_FIXTURE_DIR/Warning.swift" <<'EOF'
+let value = ""
+if value == "" {
+    print(value)
+}
+EOF
+if (cd "$STRICT_FIXTURE_DIR" && "$TOOLS_DIR/swiftlint-smart" Warning.swift >/dev/null 2>&1); then
+    echo "  ❌ swiftlint-smart accepted a warning"
+    exit 1
+fi
+echo "  ✅ swiftlint-smart rejects warnings"
+echo ""
+
 # Check custom rule engine
 echo "🔍 Checking custom rule engine..."
 RULE_ENGINE="$PROJECT_ROOT/.build/release/swiftskim-engine"

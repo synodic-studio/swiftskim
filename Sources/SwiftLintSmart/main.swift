@@ -85,7 +85,7 @@ struct SwiftLintSmart: ParsableCommand {
         do {
             let exitCode = try ProcessRunner.run(
                 "swiftlint",
-                arguments: ["lint", target, "--config", configURL.path],
+                arguments: ["lint", target, "--config", configURL.path, "--strict"],
             )
 
             if exitCode == 0 {
