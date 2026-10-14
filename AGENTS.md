@@ -74,6 +74,13 @@ itself scopes only what it discovers, so a bare `swiftlint <path>` blocks on fil
 repo-wide run never checks, which is every edit the post-edit hook sees. A path outside
 the config's own directory stays in scope rather than being silently skipped.
 
+`swiftlint-smart` enumerates directory inputs iteratively, pruning excluded trees
+before traversal and applying inclusions to source files. It invokes strict SwiftLint
+with bounded explicit-file batches, avoiding SwiftLint's recursive parallel walker
+and its stack overflow on large dependency trees. Symlink cycles are deduplicated;
+traversal errors, empty scopes, and any failed batch fail the invocation rather than
+reporting partial coverage as success.
+
 ```yaml
 # .swiftskim.yml
 disabled_rules:                     # never run these (unknown ids → hard error, exit 2)
@@ -172,7 +179,7 @@ its own re-runnable script; the orchestrator runs them all and prints a pass/fai
 
 ```bash
 ./Scripts/verify-all.sh              # local stage — no network
-./Scripts/verify-all.sh --release    # local + release stage (needs pushed HEAD)
+./Scripts/verify-all.sh --release    # local + release stage (needs pushed release tag)
 ```
 
 - **local stage** (no network): build, unit+integration tests, self-lint, agent
@@ -180,11 +187,15 @@ its own re-runnable script; the orchestrator runs them all and prints a pass/fai
   checked against each agent's documented payload shape), pi extension
   (`verify-pi-extension.sh`), SPM library consumer against the working tree
   (`verify-consumer-spm.sh`).
-- **release stage** (consumes the pushed `develop` HEAD, so push first): Homebrew
+- **release stage** (consumes the shipped release tag, so tag and push first): Homebrew
   install (`verify-brew-install.sh`), SPM consumer against the remote URL
   (`verify-consumer-spm.sh --remote`), Linux clean-room in an OrbStack/Docker Swift
   container (`verify-consumer-linux.sh`), and the Tuist demo (`verify-tuist-demo.sh`,
   project in `examples/tuist-demo/`).
+
+For an authorized development-tool update without a tagged release, run the local
+gate, push `develop`, then use `Scripts/verify-brew-install.sh --head` to install and
+verify that development revision.
 
 The two consumer surfaces share one scaffold (`Scripts/helpers/emit-spm-consumer.sh`) so the
 consumer code can't drift between the macOS and Linux checks. Each surface script also

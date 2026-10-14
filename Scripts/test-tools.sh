@@ -137,6 +137,8 @@ fi
 echo "  ✅ swiftlint-smart rejects warnings"
 echo ""
 
+python3 "$SCRIPT_DIR/test-swiftlint-traversal.py" "$TOOLS_DIR/swiftlint-smart"
+
 # Check custom rule engine
 echo "🔍 Checking custom rule engine..."
 RULE_ENGINE="$PROJECT_ROOT/.build/release/swiftskim-engine"

@@ -85,9 +85,7 @@ struct SwiftLintCustomSmart: AsyncParsableCommand {
             filesToCheck,
             ruleEngine: ruleEnginePath,
             isXcode: isXcode,
-            onlyRules: effectiveOnly,
-            disabledRules: effectiveDisabled,
-            thresholds: config.thresholds,
+            config: SwiftSkimConfig(thresholds: config.thresholds, onlyRules: effectiveOnly, disabledRules: effectiveDisabled),
         )
 
         let violationCount = results.filter(\.hasViolations).count
@@ -99,49 +97,5 @@ struct SwiftLintCustomSmart: AsyncParsableCommand {
         if violationCount > 0 {
             throw ExitCode.failure
         }
-    }
-
-    /// Print the canonical rule list by delegating to the engine's --list-rules.
-    private func printRuleList() throws {
-        let enginePath = ConfigDiscovery.customRuleEnginePath
-        try RuleEngineBuildHelper.ensureBuilt(enginePath)
-        let process = Process()
-        process.executableURL = enginePath
-        process.arguments = ["--list-rules"]
-        try process.run()
-        process.waitUntilExit()
-    }
-
-    /// Run the rule engine over `files`, in parallel by default (sequential with `--sequential`).
-    private func checkFiles(
-        _ files: [URL],
-        ruleEngine: URL,
-        isXcode: Bool,
-        onlyRules: [String]?,
-        disabledRules: [String]?,
-        thresholds: RuleThresholds,
-    ) async throws -> [CheckResult] {
-        if sequential {
-            return try files.map {
-                try CustomRulesChecker.checkFile($0, ruleEngine: ruleEngine, xcodeFormat: isXcode, onlyRules: onlyRules, disabledRules: disabledRules, thresholds: thresholds)
-            }
-        }
-
-        // Reason: structured-concurrency TaskGroup is irreducibly closure → for →
-        // addTask; the per-file task body cannot be hoisted out of that shape.
-        // swiftskim:disable excessive_nesting
-        return try await withThrowingTaskGroup(of: CheckResult.self) { group in
-            for fileURL in files {
-                group.addTask {
-                    try CustomRulesChecker.checkFile(fileURL, ruleEngine: ruleEngine, xcodeFormat: isXcode, onlyRules: onlyRules, disabledRules: disabledRules, thresholds: thresholds)
-                }
-            }
-            var results: [CheckResult] = []
-            for try await result in group {
-                results.append(result)
-            }
-            return results
-        }
-        // swiftskim:enable excessive_nesting
     }
 }

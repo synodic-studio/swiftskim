@@ -83,10 +83,7 @@ struct SwiftLintSmart: ParsableCommand {
         Console.section("🔍 Running SwiftLint on: \(target)")
 
         do {
-            let exitCode = try ProcessRunner.run(
-                "swiftlint",
-                arguments: ["lint", target, "--config", configURL.path, "--strict"],
-            )
+            let exitCode = try SwiftLintRunner.run(target: targetURL, config: configURL)
 
             if exitCode == 0 {
                 Console.success("SwiftLint completed with no violations")
